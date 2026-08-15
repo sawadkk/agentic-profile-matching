@@ -1,0 +1,22 @@
+Felix Alvarez
+Data Analyst
+
+Objective
+
+Data Analyst with 13 years of experience delivering production systems using SQL and Tableau. Proven track record across cross-functional teams.
+
+Experience
+
+Data Analyst, Ferry Road Technologies (Present)
+- Led development efforts using Statistics and Power BI, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Python.
+Data Analyst, Meridian Cloud
+- Built and maintained services with Tableau and Data Analysis, supporting 11 years of iterative delivery.
+
+Education
+
+M.S. in Data Science, University of Washington
+
+Technical Skills
+
+SQL, Tableau, Statistics, Power BI, Python, Data Analysis, ETL, Excel

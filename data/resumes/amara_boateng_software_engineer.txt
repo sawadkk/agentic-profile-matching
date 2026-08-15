@@ -1,0 +1,22 @@
+Amara Boateng
+Senior Software Engineer
+
+Summary
+
+Senior Software Engineer with 12 years of experience delivering production systems using CI/CD and Python. Proven track record across cross-functional teams.
+
+Experience
+
+Senior Software Engineer, Stonebridge Technologies (Present)
+- Led development efforts using Go and Git, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging REST API.
+Senior Software Engineer, Cobalt Analytics
+- Built and maintained services with Python and Docker, supporting 10 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Skills
+
+CI/CD, Python, Go, Git, REST API, Docker, Microservices, Java

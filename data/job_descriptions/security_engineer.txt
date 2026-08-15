@@ -1,0 +1,14 @@
+Security Engineer
+
+We are looking for a Security Engineer to strengthen our application and
+infrastructure security posture.
+
+Requirements:
+- 5+ years of security engineering experience
+- Experience with penetration testing
+- Experience with IAM and OAuth
+- Familiarity with compliance frameworks (GDPR or similar)
+
+Nice to have:
+- SIEM tooling experience
+- Python scripting experience

@@ -1,0 +1,14 @@
+langgraph
+langchain
+langchain-anthropic
+langchain-core
+anthropic
+chromadb
+pysqlite3-binary; sys_platform == "linux"
+sentence-transformers
+streamlit
+python-dotenv
+pdfplumber
+python-docx
+fpdf2
+pandas

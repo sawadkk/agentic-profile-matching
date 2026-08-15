@@ -1,0 +1,26 @@
+Casey Petrova
+Senior Cloud Architect
+
+Summary
+
+Senior Cloud Architect with 8 years of experience delivering production systems using Security and Kubernetes. Proven track record across cross-functional teams.
+
+Experience
+
+Senior Cloud Architect, Northlake Systems (Present)
+- Led development efforts using Microservices and Terraform, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging AWS.
+Senior Cloud Architect, Stonebridge Technologies
+- Built and maintained services with Kubernetes and Security, supporting 6 years of iterative delivery.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Skills
+
+Security, Kubernetes, Microservices, Terraform, AWS
+
+Projects
+
+- Internal tooling project applying Security and AWS to reduce manual workflow time.

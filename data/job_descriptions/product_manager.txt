@@ -1,0 +1,14 @@
+Product Manager
+
+We're looking for a Product Manager to own the roadmap for our analytics
+product line.
+
+Requirements:
+- 4+ years of product management experience
+- Experience running A/B tests
+- Strong stakeholder management skills
+- Experience with Agile/Scrum practices
+
+Nice to have:
+- SQL proficiency
+- Experience with Figma

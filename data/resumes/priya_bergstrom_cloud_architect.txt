@@ -1,0 +1,26 @@
+Priya Bergstrom
+Senior Cloud Architect
+
+Summary
+
+Senior Cloud Architect with 15 years of experience delivering production systems using Terraform and IAM. Proven track record across cross-functional teams.
+
+Experience
+
+Senior Cloud Architect, Ninth & Main (Present)
+- Led development efforts using Kubernetes and Security, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Azure.
+Senior Cloud Architect, Meridian Cloud
+- Built and maintained services with IAM and Microservices, supporting 13 years of iterative delivery.
+
+Education
+
+B.S. in Electrical Engineering, Purdue University
+
+Skills
+
+Terraform, IAM, Kubernetes, Security, Azure, Microservices, AWS
+
+Projects
+
+- Internal tooling project applying Terraform and AWS to reduce manual workflow time.

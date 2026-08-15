@@ -1,0 +1,24 @@
+Elena Nilsson
+Security Engineer
+
+Summary
+
+Security Engineer with 3 years of experience delivering production systems using Penetration Testing and OAuth. Proven track record across cross-functional teams.
+
+Employment
+
+Security Engineer, Brightwell Labs (Present)
+- Led development efforts using SIEM and Linux, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Encryption.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Skills
+
+Penetration Testing, OAuth, SIEM, Linux, Encryption
+
+Certifications
+
+- Certified Associate, Penetration Testing Practitioner Track

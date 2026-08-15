@@ -1,0 +1,22 @@
+Jordan Larsen
+Senior ML Engineer
+
+Summary
+
+Senior ML Engineer with 17 years of experience delivering production systems using AWS and MLOps. Proven track record across cross-functional teams.
+
+Experience
+
+Senior ML Engineer, Stonebridge Technologies (Present)
+- Led development efforts using Machine Learning and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging PyTorch.
+Senior ML Engineer, Ninth & Main
+- Built and maintained services with MLOps and AWS, supporting 15 years of iterative delivery.
+
+Education
+
+B.S. in Electrical Engineering, Purdue University
+
+Skills
+
+AWS, MLOps, Machine Learning, Python, PyTorch

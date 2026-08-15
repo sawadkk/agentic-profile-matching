@@ -1,0 +1,22 @@
+Morgan Kowalski
+Senior Backend Engineer
+
+Objective
+
+Senior Backend Engineer with 14 years of experience delivering production systems using Spring and PostgreSQL. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior Backend Engineer, Vantage Digital (Present)
+- Led development efforts using Redis and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Microservices.
+Senior Backend Engineer, Stonebridge Technologies
+- Built and maintained services with PostgreSQL and Kafka, supporting 12 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Technical Skills
+
+Spring, PostgreSQL, Redis, Python, Microservices, Kafka, Flask, Java, REST API, Django

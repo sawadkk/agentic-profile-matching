@@ -1,0 +1,16 @@
+chroma_db
+venv/
+env/
+.venv
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.idea/
+.vscode/
+.ipynb_checkpoints/
+.claude/
+
+# OS / editor
+.DS_Store
+*.log

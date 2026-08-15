@@ -1,0 +1,14 @@
+Data Analyst
+
+We're hiring a Data Analyst to support decision-making across the business
+with dashboards and ad hoc analysis.
+
+Requirements:
+- 2+ years of data analysis experience
+- Strong SQL skills
+- Experience with Tableau or Power BI
+- Experience with Excel
+
+Nice to have:
+- Python experience
+- Experience with ETL pipelines

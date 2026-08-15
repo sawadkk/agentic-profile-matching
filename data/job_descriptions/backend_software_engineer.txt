@@ -1,0 +1,13 @@
+Backend Software Engineer
+
+Join our platform team building the services that power our core product.
+
+Requirements:
+- 3+ years of backend engineering experience
+- Proficiency in Java and Spring
+- Experience with PostgreSQL and Microservices
+- Experience with REST API design
+
+Nice to have:
+- Kafka experience
+- Experience with Docker and CI/CD

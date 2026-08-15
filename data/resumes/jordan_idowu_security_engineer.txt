@@ -1,0 +1,28 @@
+Jordan Idowu
+Security Engineer
+
+Summary
+
+Security Engineer with 3 years of experience delivering production systems using Python and GDPR. Proven track record across cross-functional teams.
+
+Employment
+
+Security Engineer, Harborview Data (Present)
+- Led development efforts using OAuth and Encryption, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Linux.
+
+Education
+
+M.S. in Data Science, University of Washington
+
+Skills
+
+Python, GDPR, OAuth, Encryption, Linux, Compliance, SIEM
+
+Projects
+
+- Internal tooling project applying Python and SIEM to reduce manual workflow time.
+
+Certifications
+
+- Certified Associate, Python Practitioner Track

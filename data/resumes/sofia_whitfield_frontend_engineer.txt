@@ -1,0 +1,22 @@
+Sofia Whitfield
+Frontend Engineer
+
+Summary
+
+Frontend Engineer with 4 years of experience delivering production systems using TypeScript and React. Proven track record across cross-functional teams.
+
+Employment
+
+Frontend Engineer, Brightwell Labs (Present)
+- Led development efforts using Vue and CSS, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging GraphQL.
+Frontend Engineer, Ninth & Main
+- Built and maintained services with React and Angular, supporting 2 years of iterative delivery.
+
+Education
+
+B.S. in Software Engineering, University of Waterloo
+
+Skills
+
+TypeScript, React, Vue, CSS, GraphQL, Angular, Webpack, HTML

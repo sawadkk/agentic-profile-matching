@@ -1,0 +1,26 @@
+Marcus Kowalski
+Security Engineer
+
+Summary
+
+Security Engineer with 9 years of experience delivering production systems using Linux and GDPR. Proven track record across cross-functional teams.
+
+Employment
+
+Security Engineer, Cobalt Analytics (Present)
+- Led development efforts using Compliance and Encryption, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging IAM.
+Security Engineer, Ferry Road Technologies
+- Built and maintained services with GDPR and Penetration Testing, supporting 7 years of iterative delivery.
+
+Education
+
+B.A. in Mathematics, UCLA
+
+Skills
+
+Linux, GDPR, Compliance, Encryption, IAM, Penetration Testing, OAuth
+
+Projects
+
+- Internal tooling project applying Linux and OAuth to reduce manual workflow time.

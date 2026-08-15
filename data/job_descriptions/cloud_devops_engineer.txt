@@ -1,0 +1,14 @@
+Cloud DevOps Engineer
+
+We need a DevOps Engineer to own our cloud infrastructure and deployment
+pipelines.
+
+Requirements:
+- 4+ years of DevOps or infrastructure engineering experience
+- Hands-on AWS experience
+- Terraform and Kubernetes experience
+- Experience with CI/CD pipelines (Jenkins or similar)
+
+Nice to have:
+- Ansible experience
+- Bash scripting

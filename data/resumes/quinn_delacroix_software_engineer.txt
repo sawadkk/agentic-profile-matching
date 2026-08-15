@@ -1,0 +1,24 @@
+Quinn Delacroix
+Software Engineer
+
+Summary
+
+Software Engineer with 3 years of experience delivering production systems using REST API and CI/CD. Proven track record across cross-functional teams.
+
+Experience
+
+Software Engineer, Harborview Data (Present)
+- Led development efforts using Kubernetes and Go, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Java.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Skills
+
+REST API, CI/CD, Kubernetes, Go, Java, Microservices, Python, Git, Docker
+
+Certifications
+
+- Certified Associate, REST API Practitioner Track

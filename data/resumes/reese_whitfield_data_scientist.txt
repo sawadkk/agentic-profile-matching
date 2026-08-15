@@ -1,0 +1,22 @@
+Reese Whitfield
+Senior Data Scientist
+
+Objective
+
+Senior Data Scientist with 12 years of experience delivering production systems using Machine Learning and A/B Testing. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior Data Scientist, Brightwell Labs (Present)
+- Led development efforts using scikit-learn and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging PyTorch.
+Senior Data Scientist, Ninth & Main
+- Built and maintained services with A/B Testing and TensorFlow, supporting 10 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Technical Skills
+
+Machine Learning, A/B Testing, scikit-learn, Python, PyTorch, TensorFlow, SQL, Statistics, Pandas

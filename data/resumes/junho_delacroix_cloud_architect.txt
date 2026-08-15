@@ -1,0 +1,26 @@
+Junho Delacroix
+Senior Cloud Architect
+
+Summary
+
+Senior Cloud Architect with 6 years of experience delivering production systems using GCP and AWS. Proven track record across cross-functional teams.
+
+Experience
+
+Senior Cloud Architect, Ninth & Main (Present)
+- Led development efforts using Terraform and Kubernetes, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Microservices.
+Senior Cloud Architect, Cobalt Analytics
+- Built and maintained services with AWS and Security, supporting 4 years of iterative delivery.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Skills
+
+GCP, AWS, Terraform, Kubernetes, Microservices, Security, Networking, Azure
+
+Projects
+
+- Internal tooling project applying GCP and Azure to reduce manual workflow time.

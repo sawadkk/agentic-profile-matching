@@ -1,0 +1,28 @@
+Riley Huang
+Senior Security Engineer
+
+Summary
+
+Senior Security Engineer with 2 years of experience delivering production systems using OAuth and Python. Proven track record across cross-functional teams.
+
+Employment
+
+Senior Security Engineer, Harborview Data (Present)
+- Led development efforts using Linux and SIEM, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging IAM.
+
+Education
+
+B.S. in Electrical Engineering, Purdue University
+
+Skills
+
+OAuth, Python, Linux, SIEM, IAM, Penetration Testing, Encryption
+
+Projects
+
+- Internal tooling project applying OAuth and Encryption to reduce manual workflow time.
+
+Certifications
+
+- Certified Associate, OAuth Practitioner Track

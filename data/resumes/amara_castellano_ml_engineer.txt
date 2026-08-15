@@ -1,0 +1,22 @@
+Amara Castellano
+Senior ML Engineer
+
+Summary
+
+Senior ML Engineer with 13 years of experience delivering production systems using AWS and Deep Learning. Proven track record across cross-functional teams.
+
+Experience
+
+Senior ML Engineer, Ninth & Main (Present)
+- Led development efforts using Machine Learning and MLOps, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging NLP.
+Senior ML Engineer, Brightwell Labs
+- Built and maintained services with Deep Learning and Kubernetes, supporting 11 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Skills
+
+AWS, Deep Learning, Machine Learning, MLOps, NLP, Kubernetes, Python, TensorFlow, PyTorch

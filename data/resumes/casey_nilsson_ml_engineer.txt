@@ -1,0 +1,26 @@
+Casey Nilsson
+Senior ML Engineer
+
+Summary
+
+Senior ML Engineer with 18 years of experience delivering production systems using MLOps and AWS. Proven track record across cross-functional teams.
+
+Experience
+
+Senior ML Engineer, Meridian Cloud (Present)
+- Led development efforts using Machine Learning and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging NLP.
+Senior ML Engineer, Brightwell Labs
+- Built and maintained services with AWS and TensorFlow, supporting 16 years of iterative delivery.
+
+Education
+
+M.S. in Data Science, University of Washington
+
+Skills
+
+MLOps, AWS, Machine Learning, Python, NLP, TensorFlow
+
+Projects
+
+- Internal tooling project applying MLOps and TensorFlow to reduce manual workflow time.

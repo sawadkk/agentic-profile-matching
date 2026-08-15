@@ -1,0 +1,24 @@
+Junho Alvarez
+Senior QA Engineer
+
+Objective
+
+Senior QA Engineer with 3 years of experience delivering production systems using pytest and Python. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior QA Engineer, Ninth & Main (Present)
+- Led development efforts using Java and JIRA, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging REST API.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Technical Skills
+
+pytest, Python, Java, JIRA, REST API, Test Automation
+
+Projects
+
+- Internal tooling project applying pytest and Test Automation to reduce manual workflow time.

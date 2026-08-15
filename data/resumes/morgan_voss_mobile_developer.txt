@@ -1,0 +1,22 @@
+Morgan Voss
+Mobile Developer
+
+Objective
+
+Mobile Developer with 15 years of experience delivering production systems using React Native and Kotlin. Proven track record across cross-functional teams.
+
+Experience
+
+Mobile Developer, Stonebridge Technologies (Present)
+- Led development efforts using Flutter and Git, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Swift.
+Mobile Developer, Northlake Systems
+- Built and maintained services with Kotlin and Android, supporting 13 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Technical Skills
+
+React Native, Kotlin, Flutter, Git, Swift, Android, REST API

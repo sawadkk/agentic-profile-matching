@@ -1,0 +1,26 @@
+Jordan Petrova
+Data Analyst
+
+Objective
+
+Data Analyst with 5 years of experience delivering production systems using Power BI and Statistics. Proven track record across cross-functional teams.
+
+Experience
+
+Data Analyst, Harborview Data (Present)
+- Led development efforts using SQL and Tableau, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Python.
+Data Analyst, Stonebridge Technologies
+- Built and maintained services with Statistics and Data Analysis, supporting 3 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Technical Skills
+
+Power BI, Statistics, SQL, Tableau, Python, Data Analysis, Excel, ETL
+
+Projects
+
+- Internal tooling project applying Power BI and ETL to reduce manual workflow time.

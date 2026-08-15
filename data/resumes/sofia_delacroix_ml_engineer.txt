@@ -1,0 +1,26 @@
+Sofia Delacroix
+Senior ML Engineer
+
+Objective
+
+Senior ML Engineer with 10 years of experience delivering production systems using Python and PyTorch. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior ML Engineer, Stonebridge Technologies (Present)
+- Led development efforts using Deep Learning and Machine Learning, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging AWS.
+Senior ML Engineer, Cobalt Analytics
+- Built and maintained services with PyTorch and MLOps, supporting 8 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Technical Skills
+
+Python, PyTorch, Deep Learning, Machine Learning, AWS, MLOps, NLP
+
+Certifications
+
+- Certified Associate, Python Practitioner Track

@@ -1,0 +1,22 @@
+Jordan Singh
+Data Scientist
+
+Objective
+
+Data Scientist with 6 years of experience delivering production systems using Machine Learning and TensorFlow. Proven track record across cross-functional teams.
+
+Work Experience
+
+Data Scientist, Brightwell Labs (Present)
+- Led development efforts using SQL and Statistics, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging A/B Testing.
+Data Scientist, Ninth & Main
+- Built and maintained services with TensorFlow and Pandas, supporting 4 years of iterative delivery.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Technical Skills
+
+Machine Learning, TensorFlow, SQL, Statistics, A/B Testing, Pandas

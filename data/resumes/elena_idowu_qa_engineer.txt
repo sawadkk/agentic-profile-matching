@@ -1,0 +1,22 @@
+Elena Idowu
+Senior QA Engineer
+
+Objective
+
+Senior QA Engineer with 13 years of experience delivering production systems using Test Automation and Java. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior QA Engineer, Meridian Cloud (Present)
+- Led development efforts using CI/CD and JIRA, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging REST API.
+Senior QA Engineer, Vantage Digital
+- Built and maintained services with Java and Python, supporting 11 years of iterative delivery.
+
+Education
+
+M.S. in Computer Science, Georgia Institute of Technology
+
+Technical Skills
+
+Test Automation, Java, CI/CD, JIRA, REST API, Python, pytest

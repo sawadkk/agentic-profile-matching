@@ -1,0 +1,24 @@
+Rowan Whitfield
+QA Engineer
+
+Objective
+
+QA Engineer with 3 years of experience delivering production systems using JIRA and Java. Proven track record across cross-functional teams.
+
+Work Experience
+
+QA Engineer, Ashgrove Software (Present)
+- Led development efforts using REST API and Test Automation, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging pytest.
+
+Education
+
+B.A. in Mathematics, UCLA
+
+Technical Skills
+
+JIRA, Java, REST API, Test Automation, pytest, CI/CD
+
+Certifications
+
+- Certified Associate, JIRA Practitioner Track

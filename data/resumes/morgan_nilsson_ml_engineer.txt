@@ -1,0 +1,24 @@
+Morgan Nilsson
+Senior ML Engineer
+
+Summary
+
+Senior ML Engineer with 1 years of experience delivering production systems using Python and MLOps. Proven track record across cross-functional teams.
+
+Experience
+
+Senior ML Engineer, Vantage Digital (Present)
+- Led development efforts using Kubernetes and TensorFlow, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging PyTorch.
+
+Education
+
+B.S. in Information Systems, University of Texas at Austin
+
+Skills
+
+Python, MLOps, Kubernetes, TensorFlow, PyTorch, NLP, AWS, Machine Learning, Deep Learning
+
+Projects
+
+- Internal tooling project applying Python and Deep Learning to reduce manual workflow time.

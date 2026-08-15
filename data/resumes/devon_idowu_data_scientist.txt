@@ -1,0 +1,26 @@
+Devon Idowu
+Senior Data Scientist
+
+Objective
+
+Senior Data Scientist with 16 years of experience delivering production systems using TensorFlow and Statistics. Proven track record across cross-functional teams.
+
+Work Experience
+
+Senior Data Scientist, Cobalt Analytics (Present)
+- Led development efforts using PyTorch and Pandas, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Machine Learning.
+Senior Data Scientist, Harborview Data
+- Built and maintained services with Statistics and TensorFlow, supporting 14 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Technical Skills
+
+TensorFlow, Statistics, PyTorch, Pandas, Machine Learning
+
+Certifications
+
+- Certified Associate, TensorFlow Practitioner Track

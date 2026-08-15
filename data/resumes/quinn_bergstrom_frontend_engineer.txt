@@ -1,0 +1,26 @@
+Quinn Bergstrom
+Frontend Engineer
+
+Summary
+
+Frontend Engineer with 9 years of experience delivering production systems using Angular and CSS. Proven track record across cross-functional teams.
+
+Employment
+
+Frontend Engineer, Harborview Data (Present)
+- Led development efforts using HTML and JavaScript, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Vue.
+Frontend Engineer, Ashgrove Software
+- Built and maintained services with CSS and GraphQL, supporting 7 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Skills
+
+Angular, CSS, HTML, JavaScript, Vue, GraphQL, Webpack, React
+
+Projects
+
+- Internal tooling project applying Angular and React to reduce manual workflow time.

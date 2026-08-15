@@ -1,0 +1,22 @@
+Riley Reyes
+Senior Software Engineer
+
+Summary
+
+Senior Software Engineer with 13 years of experience delivering production systems using REST API and Java. Proven track record across cross-functional teams.
+
+Experience
+
+Senior Software Engineer, Ashgrove Software (Present)
+- Led development efforts using CI/CD and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Git.
+Senior Software Engineer, Vantage Digital
+- Built and maintained services with Java and Go, supporting 11 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Skills
+
+REST API, Java, CI/CD, Python, Git, Go, SQL, Microservices, Docker, Kubernetes

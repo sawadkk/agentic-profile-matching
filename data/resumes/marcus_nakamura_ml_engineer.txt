@@ -1,0 +1,24 @@
+Marcus Nakamura
+Machine Learning Engineer
+
+Objective
+
+Machine Learning Engineer with 3 years of experience delivering production systems using Python and TensorFlow. Proven track record across cross-functional teams.
+
+Work Experience
+
+Machine Learning Engineer, Vantage Digital (Present)
+- Led development efforts using Machine Learning and NLP, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Kubernetes.
+
+Education
+
+B.S. in Computer Science, University of Michigan
+
+Technical Skills
+
+Python, TensorFlow, Machine Learning, NLP, Kubernetes, MLOps
+
+Projects
+
+- Internal tooling project applying Python and MLOps to reduce manual workflow time.

@@ -1,0 +1,30 @@
+Junho Fontaine
+Senior Security Engineer
+
+Summary
+
+Senior Security Engineer with 10 years of experience delivering production systems using Penetration Testing and SIEM. Proven track record across cross-functional teams.
+
+Employment
+
+Senior Security Engineer, Cobalt Analytics (Present)
+- Led development efforts using GDPR and Python, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Compliance.
+Senior Security Engineer, Harborview Data
+- Built and maintained services with SIEM and IAM, supporting 8 years of iterative delivery.
+
+Education
+
+M.S. in Data Science, University of Washington
+
+Skills
+
+Penetration Testing, SIEM, GDPR, Python, Compliance, IAM, OAuth, Linux, Encryption
+
+Projects
+
+- Internal tooling project applying Penetration Testing and Encryption to reduce manual workflow time.
+
+Certifications
+
+- Certified Associate, Penetration Testing Practitioner Track

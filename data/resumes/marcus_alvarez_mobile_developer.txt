@@ -1,0 +1,22 @@
+Marcus Alvarez
+Mobile Developer
+
+Objective
+
+Mobile Developer with 15 years of experience delivering production systems using Android and React Native. Proven track record across cross-functional teams.
+
+Experience
+
+Mobile Developer, Ashgrove Software (Present)
+- Led development efforts using REST API and Flutter, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Swift.
+Mobile Developer, Brightwell Labs
+- Built and maintained services with React Native and Android, supporting 13 years of iterative delivery.
+
+Education
+
+B.S. in Computer Science, University of Michigan
+
+Technical Skills
+
+Android, React Native, REST API, Flutter, Swift

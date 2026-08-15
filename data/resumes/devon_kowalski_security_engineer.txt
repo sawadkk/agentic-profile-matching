@@ -1,0 +1,30 @@
+Devon Kowalski
+Security Engineer
+
+Summary
+
+Security Engineer with 18 years of experience delivering production systems using Compliance and SIEM. Proven track record across cross-functional teams.
+
+Employment
+
+Security Engineer, Cobalt Analytics (Present)
+- Led development efforts using Penetration Testing and IAM, improving system reliability and delivery speed.
+- Collaborated with stakeholders to ship features leveraging Linux.
+Security Engineer, Ninth & Main
+- Built and maintained services with SIEM and Encryption, supporting 16 years of iterative delivery.
+
+Education
+
+M.B.A., Northwestern University Kellogg School of Management
+
+Skills
+
+Compliance, SIEM, Penetration Testing, IAM, Linux, Encryption, Python
+
+Projects
+
+- Internal tooling project applying Compliance and Python to reduce manual workflow time.
+
+Certifications
+
+- Certified Associate, Compliance Practitioner Track

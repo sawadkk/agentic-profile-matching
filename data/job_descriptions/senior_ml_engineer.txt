@@ -1,0 +1,15 @@
+Senior ML Engineer
+
+We are hiring a Senior ML Engineer to build and deploy production machine
+learning systems for our recommendation platform.
+
+Requirements:
+- 5+ years of experience in machine learning engineering
+- Strong Python and PyTorch experience
+- Experience with Deep Learning and NLP
+- Experience deploying models with Kubernetes
+
+Nice to have:
+- Experience with MLOps tooling
+- AWS experience
+- Experience mentoring junior engineers
