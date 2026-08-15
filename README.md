@@ -5,6 +5,12 @@ multi-round, conversational workflow: an initial screen, a deep analysis of
 the shortlist, and a final hire/no-hire/maybe recommendation — all steerable
 mid-conversation ("make Kubernetes a must-have", "compare the top 3").
 
+## Guided walkthrough
+
+See [`DEMO.md`](DEMO.md) for a step-by-step walkthrough of a real screening
+session — what to type, what the agent does internally, and what to expect
+back at each turn.
+
 ## What each milestone contributed
 
 - **Milestone 1** (`fs_tools.py`) — filesystem tools (read/list/write/search)
@@ -152,4 +158,4 @@ Six end-to-end conversation flows against the live agent (requires
 
 ## Demo video
 
-TODO: link a walkthrough here.
+Written walkthrough: [`DEMO.md`](DEMO.md). Video: TODO — link here.
