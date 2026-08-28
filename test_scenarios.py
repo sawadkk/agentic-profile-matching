@@ -3,7 +3,7 @@
 These are the de-facto regression suite: each scenario drives the compiled
 LangGraph agent through a realistic multi-turn conversation and asserts on
 its behavior (not just that it ran without raising). Requires
-ANTHROPIC_API_KEY to be set and the resume corpus to already be ingested
+OPENROUTER_API_KEY to be set and the resume corpus to already be ingested
 into ./chroma_db (see resume_rag.py).
 
 Run directly: `python test_scenarios.py`
@@ -226,8 +226,8 @@ def _ensure_corpus_ingested() -> None:
 
 
 def main() -> None:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ANTHROPIC_API_KEY is not set — test_scenarios.py needs it to run the agent.")
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        print("OPENROUTER_API_KEY is not set — test_scenarios.py needs it to run the agent.")
         sys.exit(1)
 
     try:

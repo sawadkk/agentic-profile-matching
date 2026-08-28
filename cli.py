@@ -8,6 +8,8 @@ between the two interfaces.
 
 from __future__ import annotations
 
+import asyncio
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,7 +38,7 @@ def main() -> None:
         if user_input.lower() in {"exit", "quit"}:
             break
 
-        turn = run_turn(app, config, user_input)
+        turn = asyncio.run(run_turn(app, config, user_input))
         messages = turn["state"]["messages"]
         last_human_idx = max(i for i, m in enumerate(messages) if isinstance(m, HumanMessage))
         turn_ai_messages = [m for m in messages[last_human_idx + 1:] if isinstance(m, AIMessage)]

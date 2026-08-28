@@ -1,0 +1,21 @@
+{
+  "allowed_directories": [
+    "data/resumes",
+    "data/job_descriptions"
+  ],
+  "max_file_size_bytes": 5000000,
+  "batch_concurrency": 5,
+  "watch_debounce_ms": 500,
+  "resume_directory": "data/resumes",
+  "notes_database_path": "data/notes.db",
+  "servers": {
+    "filesystem": {
+      "command": "python",
+      "args": ["filesystem_mcp_server.py"]
+    },
+    "notes": {
+      "command": "python",
+      "args": ["notes_mcp_server.py"]
+    }
+  }
+}

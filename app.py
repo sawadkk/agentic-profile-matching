@@ -9,6 +9,7 @@ lives in matching_agent.run_turn — this file only renders state.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 from dotenv import load_dotenv
@@ -121,7 +122,7 @@ if user_input:
 
     with st.chat_message("assistant"):
         with st.spinner("Working..."):
-            turn = run_turn(app, config, user_input)
+            turn = asyncio.run(run_turn(app, config, user_input))
 
         # Render every AIMessage the graph produced since the user's latest
         # message (a turn can emit more than one — e.g. a ranking-delta

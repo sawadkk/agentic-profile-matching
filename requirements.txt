@@ -1,8 +1,12 @@
 langgraph
 langchain
-langchain-anthropic
+langchain-openai
 langchain-core
-anthropic
+openai
+mcp==1.29.1
+langchain-mcp-adapters==0.3.2
+watchdog==6.0.0
+aiofiles==25.1.0
 chromadb
 pysqlite3-binary; sys_platform == "linux"
 sentence-transformers

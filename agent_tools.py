@@ -4,17 +4,17 @@ Wraps Milestone 1 (fs_tools) and Milestone 2 (JobMatcher) functionality as
 LangChain tools, and adds three new tools: extract_requirements,
 compare_candidates, and generate_interview_questions.
 
-The three new tools call Claude. Unlike fs_tools (which never raises) and
-the RAG pipeline (which raises typed exceptions), these tools must degrade
-gracefully — a tool exception would break the graph run — so failures are
-logged and a usable fallback is returned instead of raised.
+The three new tools call the configured LLM (via OpenRouter). Unlike
+fs_tools (which never raises) and the RAG pipeline (which raises typed
+exceptions), these tools must degrade gracefully — a tool exception would
+break the graph run — so failures are logged and a usable fallback is
+returned instead of raised.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from typing import Any, Optional
 
@@ -23,13 +23,14 @@ from langchain_core.tools import tool
 
 import fs_tools
 from job_matcher import JobMatcher, JobMatcherError
+from llm_client import build_openai_client, call_with_retry, get_model
 
 # See resume_rag.py for why this is called here too, not just in app.py/cli.py.
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MODEL = os.environ.get("MODEL", "claude-sonnet-4-5")
+_DEFAULT_MODEL = get_model()
 
 
 class AgentToolError(Exception):
@@ -57,42 +58,74 @@ def _log_call(name: str) -> None:
     _CALL_LOG.append(name)
 
 
-def _get_anthropic_client() -> Optional[Any]:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        return None
-    try:
-        import anthropic
+def log_call(name: str) -> None:
+    """Public entry point into the same call log, for callers outside this module.
 
-        return anthropic.Anthropic(api_key=api_key)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to initialize Anthropic client: %s", exc)
-        return None
+    matching_agent.py's MCP-routed tool calls (filesystem/notes servers) are
+    invoked directly rather than as @tool-wrapped LangChain tools, so they
+    need to record into this log themselves to show up in the reasoning
+    trace, e.g. log_call("mcp:filesystem/read_file").
+    """
+    _log_call(name)
 
 
-def _call_claude_tool(
+def _get_llm_client() -> Optional[Any]:
+    return build_openai_client()
+
+
+def _call_llm_tool(
     client: Any,
     tool_schema: dict[str, Any],
     prompt: str,
     model: str = _DEFAULT_MODEL,
     max_tokens: int = 1500,
 ) -> Optional[dict[str, Any]]:
-    """Call Claude with a single forced tool call. Returns None on any failure."""
+    """Call the LLM with a single forced tool call. Returns None on any failure.
+
+    Free OpenRouter models are less reliable at tool calling than Claude, so
+    every stage here — the API call itself, the presence of a tool call, and
+    the JSON in its arguments — is treated as something that can fail.
+    """
+    name = tool_schema["name"]
+    openai_tool = {
+        "type": "function",
+        "function": {
+            "name": name,
+            "description": tool_schema.get("description", ""),
+            "parameters": tool_schema["input_schema"],
+        },
+    }
     try:
-        response = client.messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            tools=[tool_schema],
-            tool_choice={"type": "tool", "name": tool_schema["name"]},
-            messages=[{"role": "user", "content": prompt}],
+        response = call_with_retry(
+            lambda: client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                tools=[openai_tool],
+                tool_choice={"type": "function", "function": {"name": name}},
+                messages=[{"role": "user", "content": prompt}],
+            ),
+            label=f"tool call '{name}'",
         )
-        for block in response.content:
-            if getattr(block, "type", None) == "tool_use":
-                return dict(block.input)
-        return None
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Claude tool call '%s' failed: %s", tool_schema["name"], exc)
+        logger.warning("LLM tool call '%s' failed: %s", name, exc)
         return None
+
+    tool_calls = (response.choices[0].message.tool_calls or []) if response.choices else []
+    if not tool_calls:
+        logger.warning("LLM tool call '%s' returned no tool call", name)
+        return None
+
+    try:
+        data = json.loads(tool_calls[0].function.arguments)
+    except (json.JSONDecodeError, AttributeError, IndexError) as exc:
+        logger.warning("LLM tool call '%s' returned malformed JSON: %s", name, exc)
+        return None
+
+    if not isinstance(data, dict):
+        logger.warning("LLM tool call '%s' returned a non-object payload: %r", name, data)
+        return None
+
+    return data
 
 
 # --- Milestone 1 tools (fs_tools) --------------------------------------
@@ -188,34 +221,45 @@ def extract_requirements(jd: str) -> dict[str, Any]:
     """Parse a job description into must-have vs nice-to-have requirements.
 
     Distinguishes a "Requirements"/"Must have" block from "Nice to have"/
-    "Preferred"/"Bonus". Uses Claude with a forced tool call for reliable
-    structure; falls back to regex-based extraction if Claude is unavailable
-    or the call fails.
+    "Preferred"/"Bonus". Uses the configured LLM with a forced tool call for
+    reliable structure; falls back to regex-based extraction if the LLM is
+    unavailable, the call fails, or its response is malformed.
 
     Returns:
         {"role_title", "must_have": {"skills", "min_years"}, "nice_to_have": {"skills"}}
     """
     _log_call("extract_requirements")
-    client = _get_anthropic_client()
+    client = _get_llm_client()
     if client is not None:
         prompt = (
             "Extract structured hiring requirements from this job description. "
             "Distinguish must-have requirements (from a Requirements/Must have/"
             "Qualifications section) from nice-to-have ones (Nice to have/"
             "Preferred/Bonus section). Extract the minimum years of experience "
-            "required as an integer (0 if unspecified).\n\n"
+            "required as an integer (0 if unspecified). Each entry in "
+            "must_have_skills and nice_to_have_skills must be a single atomic "
+            "skill or technology name (e.g. \"Python\", \"Kubernetes\") — never "
+            "a phrase, sentence, or multiple skills joined together (e.g. not "
+            "\"Python and PyTorch\" or \"experience deploying models with "
+            "Kubernetes\"). Split any such phrase into its separate skill "
+            "names.\n\n"
             f"Job description:\n{jd}"
         )
-        result = _call_claude_tool(client, _EXTRACT_REQUIREMENTS_TOOL, prompt)
-        if result is not None:
-            return {
-                "role_title": result.get("role_title", "Unknown Role"),
-                "must_have": {
-                    "skills": list(result.get("must_have_skills", [])),
-                    "min_years": int(result.get("min_years", 0)),
-                },
-                "nice_to_have": {"skills": list(result.get("nice_to_have_skills", []))},
-            }
+        result = _call_llm_tool(client, _EXTRACT_REQUIREMENTS_TOOL, prompt)
+        if result is not None and "must_have_skills" in result:
+            try:
+                return {
+                    "role_title": result.get("role_title", "Unknown Role"),
+                    "must_have": {
+                        "skills": list(result.get("must_have_skills", [])),
+                        "min_years": int(result.get("min_years", 0)),
+                    },
+                    "nice_to_have": {"skills": list(result.get("nice_to_have_skills", []))},
+                }
+            except (TypeError, ValueError) as exc:
+                logger.warning("extract_requirements: unexpected value types in response: %s", exc)
+        elif result is not None:
+            logger.warning("extract_requirements: response missing expected keys: %r", result)
 
     logger.warning("extract_requirements falling back to regex extraction")
     return _regex_fallback_requirements(jd)
@@ -248,7 +292,7 @@ def compare_candidates(candidate_names: list[str]) -> dict[str, Any]:
     Pulls each candidate's chunks from ChromaDB and returns a shared
     attribute table (years, matched skills, education, key strengths) plus
     a short narrative on how they differ. Falls back to a table-only
-    comparison (no narrative) if Claude is unavailable.
+    comparison (no narrative) if the LLM is unavailable.
     """
     _log_call("compare_candidates")
     if not (2 <= len(candidate_names) <= 5):
@@ -297,9 +341,9 @@ def compare_candidates(candidate_names: list[str]) -> dict[str, Any]:
 def _compare_candidates_narrative(
     candidate_names: list[str], attribute_table: list[dict[str, Any]]
 ) -> str:
-    client = _get_anthropic_client()
+    client = _get_llm_client()
     if client is None:
-        return "Claude unavailable — see attribute table for a structured comparison."
+        return "LLM unavailable — see attribute table for a structured comparison."
 
     summary_lines = []
     for row in attribute_table:
@@ -314,9 +358,9 @@ def _compare_candidates_narrative(
         "they differ. Do not invent experience not listed here.\n\n"
         + "\n".join(summary_lines)
     )
-    result = _call_claude_tool(client, _COMPARE_CANDIDATES_TOOL, prompt)
-    if result is None:
-        return "Claude call failed — see attribute table for a structured comparison."
+    result = _call_llm_tool(client, _COMPARE_CANDIDATES_TOOL, prompt)
+    if result is None or "narrative" not in result:
+        return "LLM call failed — see attribute table for a structured comparison."
     return result.get("narrative", "")
 
 
@@ -349,12 +393,12 @@ _FALLBACK_QUESTIONS = [
     {
         "question": "Walk me through your most recent project relevant to this role.",
         "probes": "strength",
-        "rationale": "General fallback question — Claude was unavailable.",
+        "rationale": "General fallback question — the LLM was unavailable.",
     },
     {
         "question": "What is an area of this role's requirements you have the least experience with?",
         "probes": "gap",
-        "rationale": "General fallback question — Claude was unavailable.",
+        "rationale": "General fallback question — the LLM was unavailable.",
     },
 ]
 
@@ -365,7 +409,7 @@ def generate_interview_questions(candidate_name: str, requirements: Optional[dic
 
     Mixes questions probing claimed strengths and questions probing gaps
     against the current job requirements. Grounded in the candidate's
-    retrieved resume chunks. Falls back to generic questions if Claude is
+    retrieved resume chunks. Falls back to generic questions if the LLM is
     unavailable or the candidate has no indexed chunks.
     """
     _log_call("generate_interview_questions")
@@ -380,9 +424,9 @@ def generate_interview_questions(candidate_name: str, requirements: Optional[dic
     resume_text = "\n\n".join(c["text"] for c in chunks)
     requirements = requirements or {}
 
-    client = _get_anthropic_client()
+    client = _get_llm_client()
     if client is None:
-        logger.warning("generate_interview_questions: no Claude client, using fallback")
+        logger.warning("generate_interview_questions: no LLM client, using fallback")
         return {"candidate_name": candidate_name, "questions": _FALLBACK_QUESTIONS}
 
     prompt = (
@@ -394,11 +438,13 @@ def generate_interview_questions(candidate_name: str, requirements: Optional[dic
         f"Requirements: {json.dumps(requirements)}\n\n"
         f"Resume content:\n{resume_text[:6000]}"
     )
-    result = _call_claude_tool(client, _INTERVIEW_QUESTIONS_TOOL, prompt)
-    if result is None:
+    result = _call_llm_tool(client, _INTERVIEW_QUESTIONS_TOOL, prompt)
+    if result is None or "questions" not in result or not isinstance(result["questions"], list):
+        if result is not None:
+            logger.warning("generate_interview_questions: response missing 'questions' list, using fallback")
         return {"candidate_name": candidate_name, "questions": _FALLBACK_QUESTIONS}
 
-    return {"candidate_name": candidate_name, "questions": result.get("questions", _FALLBACK_QUESTIONS)}
+    return {"candidate_name": candidate_name, "questions": result["questions"]}
 
 
 ALL_TOOLS = [

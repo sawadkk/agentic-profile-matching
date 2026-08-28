@@ -5,7 +5,7 @@ type, what the agent does internally, and what to expect back.
 
 ## Prerequisites
 
-- Virtual environment active, `ANTHROPIC_API_KEY` set (see [README setup](README.md#setup)).
+- Virtual environment active, `OPENROUTER_API_KEY` set (see [README setup](README.md#setup)).
 - `python generate_sample_data.py` and `python resume_rag.py` already run.
   The corpus is 100 resumes across 12 job families.
 
@@ -24,7 +24,7 @@ stateDiagram-v2
     human_feedback --> rank_candidates: rerank
     human_feedback --> deep_screen: deep_screen
     human_feedback --> final_recommendation: final
-    human_feedback --> human_feedback: compare / explain
+    human_feedback --> human_feedback: compare / explain / history
     human_feedback --> [*]: end
 
     deep_screen --> generate_report
@@ -42,8 +42,10 @@ what makes it multi-turn.
 **Nodes executed:** `parse_jd` → `extract_requirements` → `search_resumes`
 → `rank_candidates` → `generate_report`
 
-**What happens:** `parse_jd` reads the file via `fs_tools`. `extract_requirements`
-calls Claude with a forced tool call to split must-have from nice-to-have.
+**What happens:** `parse_jd` reads the file via the `read_file` MCP tool
+(`mcp:filesystem/read_file` in the reasoning trace — see
+[MCP](README.md#mcp-milestone-4)). `extract_requirements`
+calls the LLM (via OpenRouter) with a forced tool call to split must-have from nice-to-have.
 `search_resumes` embeds the JD and queries ChromaDB, over-fetching chunks
 (5x the requested candidate count) then aggregating by candidate.
 `rank_candidates` applies hybrid scoring (0.6 semantic + 0.4 keyword) and
@@ -119,8 +121,8 @@ maybe per candidate with justification grounded in retrieved content.
 ## Why rounds are manual
 
 Round 2 (deep analysis) and round 3 (final recommendation) are expensive
-Claude-backed operations across the whole shortlist. Advancing
-automatically would burn tokens on analysis the user may not want yet, so
+LLM-backed operations across the whole shortlist. Advancing
+automatically would burn tokens/quota on analysis the user may not want yet, so
 progression happens on instruction.
 
 ## Running the tests

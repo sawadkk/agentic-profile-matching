@@ -8,6 +8,7 @@ type) so job_matcher.py can retrieve and score candidates.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
@@ -29,10 +30,11 @@ from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 
 import fs_tools
+from llm_client import build_openai_client, call_with_retry, get_model
 
 # Loaded here (not just in app.py/cli.py) so this module works correctly
 # whether it's run directly (`python resume_rag.py`) or imported — module-
-# level env reads elsewhere (MODEL) and the lazy ANTHROPIC_API_KEY read in
+# level env reads elsewhere (MODEL) and the lazy OPENROUTER_API_KEY read in
 # MetadataExtractor both depend on .env having been loaded by this point.
 load_dotenv()
 
@@ -212,32 +214,23 @@ def _regex_extract_education(text: str) -> Optional[str]:
 class MetadataExtractor:
     """Extracts candidate metadata (skills, years, education) from text.
 
-    Extraction order: Claude (forced tool call) -> regex fallback -> hard
-    defaults. The regex tier matters: falling straight to a hard default of
-    0 years would make every must-have-years filter reject the whole corpus.
+    Extraction order: LLM (forced tool call, via OpenRouter) -> regex
+    fallback -> hard defaults. The regex tier matters: falling straight to a
+    hard default of 0 years would make every must-have-years filter reject
+    the whole corpus. Free OpenRouter models are less reliable at tool
+    calling than Claude, so every parse of the model's response is
+    defensive: missing/malformed output falls back rather than raising.
     """
 
     def __init__(self, client: Optional[Any] = None, model: Optional[str] = None) -> None:
         self._client = client
-        self._model = model or os.environ.get("MODEL", "claude-sonnet-4-5")
+        self._model = model or get_model()
         if self._client is None:
-            self._client = self._build_default_client()
-
-    def _build_default_client(self) -> Optional[Any]:
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            return None
-        try:
-            import anthropic
-
-            return anthropic.Anthropic(api_key=api_key)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to initialize Anthropic client: %s", exc)
-            return None
+            self._client = build_openai_client()
 
     def extract(self, full_text: str) -> dict[str, Any]:
         """Extract {skills, experience_years, education} from resume text."""
-        result = self._extract_via_claude(full_text)
+        result = self._extract_via_llm(full_text)
         if result is not None:
             return result
 
@@ -252,54 +245,76 @@ class MetadataExtractor:
             "education": education or "Unknown",
         }
 
-    def _extract_via_claude(self, full_text: str) -> Optional[dict[str, Any]]:
+    def _extract_via_llm(self, full_text: str) -> Optional[dict[str, Any]]:
         if self._client is None:
             return None
 
         tool = {
-            "name": "record_resume_metadata",
-            "description": "Record structured metadata extracted from a resume.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "skills": {"type": "array", "items": {"type": "string"}},
-                    "experience_years": {"type": "integer"},
-                    "education": {"type": "string"},
+            "type": "function",
+            "function": {
+                "name": "record_resume_metadata",
+                "description": "Record structured metadata extracted from a resume.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "skills": {"type": "array", "items": {"type": "string"}},
+                        "experience_years": {"type": "integer"},
+                        "education": {"type": "string"},
+                    },
+                    "required": ["skills", "experience_years", "education"],
                 },
-                "required": ["skills", "experience_years", "education"],
             },
         }
         try:
-            response = self._client.messages.create(
-                model=self._model,
-                max_tokens=1024,
-                tools=[tool],
-                tool_choice={"type": "tool", "name": "record_resume_metadata"},
-                messages=[
-                    {
-                        "role": "user",
-                        "content": (
-                            "Extract structured metadata from this resume. "
-                            "List all technical/professional skills mentioned, "
-                            "the candidate's total years of professional "
-                            "experience (integer), and their highest degree "
-                            "and institution as a single string.\n\n"
-                            f"Resume:\n{full_text[:8000]}"
-                        ),
-                    }
-                ],
+            response = call_with_retry(
+                lambda: self._client.chat.completions.create(
+                    model=self._model,
+                    max_tokens=1024,
+                    tools=[tool],
+                    tool_choice={"type": "function", "function": {"name": "record_resume_metadata"}},
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": (
+                                "Extract structured metadata from this resume. "
+                                "List all technical/professional skills mentioned, "
+                                "the candidate's total years of professional "
+                                "experience (integer), and their highest degree "
+                                "and institution as a single string.\n\n"
+                                f"Resume:\n{full_text[:8000]}"
+                            ),
+                        }
+                    ],
+                ),
+                label="MetadataExtractor",
             )
-            for block in response.content:
-                if getattr(block, "type", None) == "tool_use":
-                    data = block.input
-                    return {
-                        "skills": list(data.get("skills", [])),
-                        "experience_years": int(data.get("experience_years", 0)),
-                        "education": str(data.get("education", "Unknown")),
-                    }
-            return None
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Claude metadata extraction failed, falling back: %s", exc)
+            logger.warning("Metadata extraction call failed, falling back: %s", exc)
+            return None
+
+        tool_calls = (response.choices[0].message.tool_calls or []) if response.choices else []
+        if not tool_calls:
+            logger.warning("Metadata extraction returned no tool call, falling back")
+            return None
+
+        try:
+            data = json.loads(tool_calls[0].function.arguments)
+        except (json.JSONDecodeError, AttributeError, IndexError) as exc:
+            logger.warning("Metadata extraction returned malformed JSON, falling back: %s", exc)
+            return None
+
+        if not isinstance(data, dict) or "skills" not in data or "experience_years" not in data:
+            logger.warning("Metadata extraction response missing expected keys, falling back: %r", data)
+            return None
+
+        try:
+            return {
+                "skills": list(data.get("skills", [])),
+                "experience_years": int(data.get("experience_years", 0)),
+                "education": str(data.get("education", "Unknown")),
+            }
+        except (TypeError, ValueError) as exc:
+            logger.warning("Metadata extraction response had wrong types, falling back: %s", exc)
             return None
 
 

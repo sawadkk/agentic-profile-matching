@@ -1,11 +1,25 @@
 """LangGraph agent for multi-round, conversational resume screening.
 
-Wires together the fs_tools / RAG / JobMatcher pipeline (Milestones 1-2)
-and the agent tools (agent_tools.py) into a state machine with three
-screening rounds: initial screen, deep analysis, and final recommendation.
-Round transitions and requirement/ranking refinements are driven by a
-human_feedback classifier node rather than automatic progression or
-keyword matching, so the agent stays inspectable and predictable.
+Wires together the RAG / JobMatcher pipeline (Milestone 2), the agent tools
+(agent_tools.py), and the MCP client (mcp_client.py, Milestone 4) into a
+state machine with three screening rounds: initial screen, deep analysis,
+and final recommendation. Round transitions and requirement/ranking
+refinements are driven by a human_feedback classifier node rather than
+automatic progression or keyword matching, so the agent stays inspectable
+and predictable.
+
+This module no longer imports fs_tools directly (Milestone 4): the only
+path to the filesystem is through mcp_client.MCPClientManager, which talks
+to filesystem_mcp_server.py over MCP. fs_tools.py still exists and still
+does the actual file I/O — it's just called from inside that server process
+now, not from here. Round 3 also persists its verdicts through a second MCP
+server (notes_mcp_server.py) via the same client.
+
+Because MCP calls are async, every node that touches either MCP server
+(parse_jd, final_recommendation, human_feedback) is an async def, and the
+graph is driven end-to-end via LangGraph's async API (astream/aget_state/
+aupdate_state) in run_turn — mixing sync and async nodes in one graph is
+supported, but only if the whole graph is invoked asynchronously.
 """
 
 from __future__ import annotations
@@ -17,28 +31,33 @@ import re
 from typing import Annotated, Any, Optional, TypedDict
 
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 
-import fs_tools
+import mcp_client
 from agent_tools import (
     compare_candidates,
     extract_requirements,
     generate_interview_questions,
     get_call_log,
+    log_call,
     rag_search,
     reset_call_log,
 )
+from llm_client import OPENROUTER_BASE_URL, get_model
 
 # See resume_rag.py for why this is called here too, not just in app.py/cli.py.
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_MODEL = os.environ.get("MODEL", "claude-sonnet-4-5")
+_VALID_ROUTING_ACTIONS = {
+    "refine", "rerank", "deep_screen", "final", "compare", "explain", "history", "end",
+}
+_VERDICT_TO_DECISION = {"hire": "hire", "no-hire": "no_hire", "maybe": "maybe"}
 BORDERLINE_MARGIN = 10.0
 ROUND_1_SHORTLIST_SIZE = 10
 
@@ -61,7 +80,7 @@ class AgentState(TypedDict):
         reports: candidate_name -> report text (round 1/2/3 outputs).
         user_feedback: Latest user refinement instruction.
         next_action: Routing hint set by human_feedback ("refine" | "rerank" |
-            "deep_screen" | "final" | "compare" | "explain" | "end").
+            "deep_screen" | "final" | "compare" | "explain" | "history" | "end").
     """
 
     messages: Annotated[list, add_messages]
@@ -75,8 +94,35 @@ class AgentState(TypedDict):
     next_action: str
 
 
-def _get_llm() -> ChatAnthropic:
-    return ChatAnthropic(model=_DEFAULT_MODEL, temperature=0)
+def _get_llm() -> ChatOpenAI:
+    return ChatOpenAI(
+        model=get_model(),
+        temperature=0,
+        base_url=OPENROUTER_BASE_URL,
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+        max_retries=3,
+    )
+
+
+async def _get_mcp_manager() -> Optional[mcp_client.MCPClientManager]:
+    """Get the MCP client manager, or None if a server is unavailable.
+
+    mcp_client.MCPClientManager.initialize() raises MCPClientError with a
+    clear message when a configured server can't be launched (bad path,
+    interpreter missing, non-zero exit, etc.). Every node that touches MCP
+    goes through this rather than calling mcp_client.get_manager()
+    directly, so that failure degrades to a logged warning and a None the
+    caller can fall back on -- matching agent_tools.py's convention that a
+    tool failure must never crash a graph run. Without this, the
+    exception propagates out of the node, through LangGraph's runner, and
+    crashes the whole turn with a raw traceback instead of a usable
+    response.
+    """
+    try:
+        return await mcp_client.get_manager()
+    except mcp_client.MCPClientError as exc:
+        logger.warning("MCP unavailable: %s", exc)
+        return None
 
 
 def _latest_human_text(state: AgentState) -> str:
@@ -99,6 +145,10 @@ def _find_referenced_filepath(text: str) -> Optional[str]:
 
     Handles both a bare path ("data/job_descriptions/x.txt") and a path
     embedded in a sentence ("Screen candidates against data/.../x.txt").
+    This is local string disambiguation (does this token look like a real
+    path at all?), not a filesystem read, so it stays a plain os.path.isfile
+    check rather than an MCP round trip; the actual file content only ever
+    comes back through the MCP client, below.
     """
     for match in _PATH_TOKEN_REGEX.finditer(text):
         candidate = match.group(0).rstrip(".,;:")
@@ -107,16 +157,21 @@ def _find_referenced_filepath(text: str) -> Optional[str]:
     return None
 
 
-def parse_jd(state: AgentState) -> dict[str, Any]:
+async def parse_jd(state: AgentState) -> dict[str, Any]:
     """Resolve the job description: either raw text or a filepath in the latest message."""
     text = _latest_human_text(state)
 
     filepath = _find_referenced_filepath(text)
     if filepath:
-        result = fs_tools.read_file(filepath)
-        if result["success"]:
-            return {"job_description": result["content"]}
-        logger.warning("parse_jd: failed to read %s: %s", filepath, result["error"])
+        manager = await _get_mcp_manager()
+        if manager is None:
+            logger.warning("parse_jd: MCP unavailable, falling back to raw message text instead of reading %s", filepath)
+        else:
+            result = await manager.call_tool("read_file", filepath=filepath)
+            log_call(manager.trace_label("read_file"))
+            if result.get("success"):
+                return {"job_description": result["content"]}
+            logger.warning("parse_jd: failed to read %s via MCP: %s", filepath, result.get("error"))
 
     # Strip a leading instruction like "Find me candidates for this job
     # description:" if present, keeping everything after the colon.
@@ -331,13 +386,26 @@ def deep_screen(state: AgentState) -> dict[str, Any]:
     return {"reports": reports, "round_number": 2, "messages": [AIMessage(content="\n\n".join(lines))]}
 
 
-def final_recommendation(state: AgentState) -> dict[str, Any]:
-    """Round 3: hire / no-hire / maybe recommendation per candidate, with justification."""
+async def final_recommendation(state: AgentState) -> dict[str, Any]:
+    """Round 3: hire / no-hire / maybe recommendation per candidate, with justification.
+
+    Also persists each verdict to the notes MCP server (save_decision) so
+    it's queryable in future sessions via the "history" route below. A
+    persistence failure (notes server unavailable, etc.) is logged and
+    surfaced in the report as a warning, not raised — the round 3 report
+    itself must still complete.
+    """
     shortlist = state.get("shortlist", [])
     reports = dict(state.get("reports", {}))
+    job_role = state.get("requirements", {}).get("role_title") or "Unknown Role"
 
     cutoff = min((c["match_score"] for c in shortlist), default=0)
     lines = [f"## Round 3: Final Recommendation — {len(shortlist)} candidates\n"]
+
+    manager = await _get_mcp_manager()
+    persisted = 0
+    persist_errors: list[str] = []
+
     for candidate in shortlist:
         name = candidate["candidate_name"]
         score = candidate["match_score"]
@@ -358,22 +426,47 @@ def final_recommendation(state: AgentState) -> dict[str, Any]:
         reports[name] = reports.get(name, "") + "\n\n" + section
         lines.append(section)
 
+        if manager is None:
+            persist_errors.append(f"{name}: MCP notes server unavailable")
+        else:
+            save_result = await manager.call_tool(
+                "save_decision",
+                candidate_name=name,
+                job_role=job_role,
+                decision=_VERDICT_TO_DECISION[verdict],
+                rationale=justification,
+            )
+            log_call(manager.trace_label("save_decision"))
+            if "error" in save_result:
+                persist_errors.append(f"{name}: {save_result['error']}")
+            else:
+                persisted += 1
+
+    if persisted:
+        lines.append(f"\n_Persisted {persisted}/{len(shortlist)} decision(s) to the notes server._")
+    if persist_errors:
+        logger.warning("final_recommendation: failed to persist %d decision(s): %s", len(persist_errors), persist_errors)
+        lines.append(f"\n_Warning: {len(persist_errors)} decision(s) could not be persisted (notes server issue)._")
+
     return {"reports": reports, "round_number": 3, "messages": [AIMessage(content="\n\n".join(lines))]}
 
 
 _FEEDBACK_ROUTING_TOOL = {
-    "name": "route_feedback",
-    "description": "Classify the user's latest message into a routing action.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "next_action": {
-                "type": "string",
-                "enum": ["refine", "rerank", "deep_screen", "final", "compare", "explain", "end"],
+    "type": "function",
+    "function": {
+        "name": "route_feedback",
+        "description": "Classify the user's latest message into a routing action.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "next_action": {
+                    "type": "string",
+                    "enum": sorted(_VALID_ROUTING_ACTIONS),
+                },
+                "user_feedback_summary": {"type": "string"},
             },
-            "user_feedback_summary": {"type": "string"},
+            "required": ["next_action", "user_feedback_summary"],
         },
-        "required": ["next_action", "user_feedback_summary"],
     },
 }
 
@@ -392,10 +485,16 @@ for the shortlist.
 - "compare": the user wants a head-to-head comparison of two or more \
 candidates (e.g. "compare the top 3", "compare Elena and Marcus").
 - "explain": the user is asking why one candidate ranked above another.
+- "history": the user is asking about past screening decisions for a \
+candidate (e.g. "have we screened Elena before?", "what did we decide \
+about Marcus previously?"), independent of the current shortlist.
 - "end": none of the above (e.g. a plain acknowledgement or goodbye)."""
 
 # "top N" in a comparison/explanation request, e.g. "compare the top 3".
 _TOP_N_REGEX = re.compile(r"top\s+(\d+)", re.IGNORECASE)
+# A plain "Firstname Lastname"-shaped fallback for extracting a candidate
+# name from a history query when it isn't in the current shortlist.
+_NAME_REGEX = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b")
 
 
 def _resolve_candidate_names(
@@ -460,12 +559,58 @@ def _handle_explain(state: AgentState, text: str) -> str:
     )
 
 
-def human_feedback(state: AgentState) -> dict[str, Any]:
+def _extract_candidate_name(text: str, shortlist: list[dict[str, Any]]) -> Optional[str]:
+    """Resolve a single candidate name for a history query.
+
+    Prefers a shortlist member named in the text (correct capitalization
+    guaranteed); falls back to a bare "Firstname Lastname" pattern since a
+    history query can legitimately name someone outside the current
+    shortlist — that's the point of a cross-session record.
+    """
+    for candidate in shortlist:
+        if candidate["candidate_name"].lower() in text.lower():
+            return candidate["candidate_name"]
+    match = _NAME_REGEX.search(text)
+    return match.group(0) if match else None
+
+
+async def _handle_history(state: AgentState, text: str) -> str:
+    name = _extract_candidate_name(text, state.get("shortlist", []))
+    if not name:
+        return "I couldn't identify a candidate name in that message to look up screening history for."
+
+    manager = await _get_mcp_manager()
+    if manager is None:
+        return f"Screening history for {name} is unavailable right now (notes MCP server unreachable)."
+
+    result = await manager.call_tool("get_candidate_history", candidate_name=name)
+    log_call(manager.trace_label("get_candidate_history"))
+
+    if "error" in result:
+        return f"Couldn't retrieve screening history for {name}: {result['error']}"
+
+    decisions = result.get("decisions", [])
+    if not decisions:
+        return f"No prior screening history found for {name}."
+
+    lines = [f"## Screening history for {name}", ""]
+    for decision in decisions:
+        date = decision.get("created_at", "")[:10]
+        lines.append(
+            f"- {date} — **{decision.get('decision', '?').upper()}** for "
+            f"{decision.get('job_role', '?')}: {decision.get('rationale', '')}"
+        )
+    return "\n".join(lines)
+
+
+async def human_feedback(state: AgentState) -> dict[str, Any]:
     """Interpret the user's latest message and set next_action for routing.
 
-    For "compare" and "explain" intents, also answers inline (grounded in
-    the current shortlist) since neither has a dedicated downstream node —
-    both route to END, so the answer has to be produced here.
+    For "compare", "explain", and "history" intents, also answers inline
+    (grounded in the current shortlist, or — for "history" — the notes MCP
+    server) since none of the three has a dedicated downstream node — all
+    route back to this node or to END, so the answer has to be produced
+    here.
     """
     text = _latest_human_text(state)
     llm = _get_llm()
@@ -480,12 +625,19 @@ def human_feedback(state: AgentState) -> dict[str, Any]:
             ]
         )
         tool_calls = getattr(response, "tool_calls", None) or []
-        if tool_calls:
-            args = tool_calls[0]["args"]
-            next_action = args.get("next_action", "end")
-            feedback_summary = args.get("user_feedback_summary", text)
-        else:
+        if not tool_calls:
+            logger.warning("human_feedback: model returned no tool call, defaulting to 'end'")
             next_action, feedback_summary = "end", text
+        else:
+            args = tool_calls[0].get("args") or {}
+            next_action = args.get("next_action")
+            if next_action not in _VALID_ROUTING_ACTIONS:
+                logger.warning(
+                    "human_feedback: invalid/missing next_action %r, defaulting to 'end'",
+                    next_action,
+                )
+                next_action = "end"
+            feedback_summary = args.get("user_feedback_summary") or text
     except Exception as exc:  # noqa: BLE001
         logger.warning("human_feedback routing failed, defaulting to 'end': %s", exc)
         next_action, feedback_summary = "end", text
@@ -495,6 +647,8 @@ def human_feedback(state: AgentState) -> dict[str, Any]:
         update["messages"] = [AIMessage(content=_handle_compare(state, text))]
     elif next_action == "explain":
         update["messages"] = [AIMessage(content=_handle_explain(state, text))]
+    elif next_action == "history":
+        update["messages"] = [AIMessage(content=await _handle_history(state, text))]
     return update
 
 
@@ -534,11 +688,12 @@ def build_graph() -> Any:
             "rerank": "rank_candidates",
             "deep_screen": "deep_screen",
             "final": "final_recommendation",
-            # compare/explain answer inline in human_feedback and loop back
-            # to it — interrupt_before re-triggers, pausing for the next
-            # user message instead of ending the conversation.
+            # compare/explain/history answer inline in human_feedback and
+            # loop back to it — interrupt_before re-triggers, pausing for
+            # the next user message instead of ending the conversation.
             "compare": "human_feedback",
             "explain": "human_feedback",
+            "history": "human_feedback",
             "end": END,
         },
     )
@@ -567,7 +722,7 @@ def empty_state() -> AgentState:
     }
 
 
-def run_turn(app: Any, config: dict[str, Any], user_input: str) -> dict[str, Any]:
+async def run_turn(app: Any, config: dict[str, Any], user_input: str) -> dict[str, Any]:
     """Advance the conversation by one user turn, shared by app.py and cli.py.
 
     On a fresh thread, starts the graph from START with `user_input` as the
@@ -575,22 +730,31 @@ def run_turn(app: Any, config: dict[str, Any], user_input: str) -> dict[str, Any
     already ran and the agent is waiting for direction), injects
     `user_input` as the newest message and resumes from the interrupt.
 
+    Async because parse_jd, final_recommendation, and human_feedback call
+    the MCP client; the whole graph is driven via the async API
+    (astream/aget_state/aupdate_state) accordingly. Callers (app.py, cli.py)
+    run this via asyncio.run(...) or an existing event loop.
+
     Returns:
         {"state": AgentState, "trace": [{"node": str, "tools_called": [str]}]}
+        Each trace entry's tools_called may include MCP-routed calls
+        labeled "mcp:<server>/<tool>" (e.g. "mcp:filesystem/read_file",
+        "mcp:notes/save_decision") alongside plain agent tool names, so the
+        protocol boundary is visible in the trace.
     """
     reset_call_log()
-    snapshot = app.get_state(config)
+    snapshot = await app.aget_state(config)
     paused_before_feedback = snapshot.next == ("human_feedback",)
 
     if paused_before_feedback:
-        app.update_state(config, {"messages": [HumanMessage(content=user_input)]})
+        await app.aupdate_state(config, {"messages": [HumanMessage(content=user_input)]})
         stream_input: Optional[dict[str, Any]] = None
     else:
         stream_input = {**empty_state(), "messages": [HumanMessage(content=user_input)]}
 
     trace: list[dict[str, Any]] = []
     prev_log_len = 0
-    for step in app.stream(stream_input, config=config, stream_mode="updates"):
+    async for step in app.astream(stream_input, config=config, stream_mode="updates"):
         for node_name in step:
             # LangGraph yields pseudo-keys like "__interrupt__" alongside
             # real node names when the graph pauses — not one of our nodes,
@@ -601,7 +765,8 @@ def run_turn(app: Any, config: dict[str, Any], user_input: str) -> dict[str, Any
             trace.append({"node": node_name, "tools_called": log[prev_log_len:]})
             prev_log_len = len(log)
 
-    return {"state": app.get_state(config).values, "trace": trace}
+    final_snapshot = await app.aget_state(config)
+    return {"state": final_snapshot.values, "trace": trace}
 
 
 def save_graph_diagram(output_path: str = "docs/state_machine.png") -> None:
@@ -614,16 +779,14 @@ def save_graph_diagram(output_path: str = "docs/state_machine.png") -> None:
     print(f"Saved graph diagram to {output_path}")
 
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
+async def _smoke_test() -> None:
     app = build_graph()
     config = {"configurable": {"thread_id": "smoke-test"}}
 
     with open("data/job_descriptions/senior_ml_engineer.txt", "r", encoding="utf-8") as fh:
         jd_text = fh.read()
 
-    turn = run_turn(app, config, f"Find me candidates for this job description: {jd_text}")
+    turn = await run_turn(app, config, f"Find me candidates for this job description: {jd_text}")
     state = turn["state"]
 
     print(f"round_number={state['round_number']}")
@@ -634,3 +797,10 @@ if __name__ == "__main__":
     print("trace:")
     for step in turn["trace"]:
         print(f"  {step['node']:25s} tools={step['tools_called']}")
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(_smoke_test())
